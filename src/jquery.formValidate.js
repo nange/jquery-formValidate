@@ -35,7 +35,7 @@
 			_this = this; 
 
 		for (var i in opts.fields) {
-			$(i).on('blur', function(e) {
+			this.$form.find(i).on('blur', function(e) {
 				var result = _this.validateField($(this), opts.fields[i]);
 				if (!result) {
 					opts.error.call(this, e);
@@ -64,7 +64,7 @@
 
 		this.$form.on('submit', function(e) {
 			for (var i in opts.fields) {
-				if (!_this.validateField($(i), opts.fields[i])) {
+				if (!_this.validateField(_this.$form.find(i), opts.fields[i])) {
 					error = true;
 				}
 			}
