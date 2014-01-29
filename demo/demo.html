@@ -9,10 +9,14 @@
  				$('#demo-form').formValidate({
  					fields: {
 						'input[name="username"]': {
-							required: true
+							remote: {
+								url: '/backend.json',
+								data: {}
+							}
 						},
 						'input[name="email"]': {
-							required: true
+							required: true,
+							reg: /^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/
 						}
 					}
  				});

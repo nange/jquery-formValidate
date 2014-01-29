@@ -22,26 +22,34 @@
 	};
 
 	FormValidate.DEFAULTS = {
-		error: function(e) {
-			alert('validate error !');
-		},
-		success: function(e) {
-			alert('validate success !');
-		}
+		error: $.noop,
+		success: $.noop,
+		errorDom: ''
 	};
 
 	FormValidate.prototype.handleFields = function() {
 		var opts = this.options,
 			_this = this; 
 
-		for (var i in opts.fields) {
-			this.$form.find(i).on('blur', function(e) {
-				var result = _this.validateField($(this), opts.fields[i]);
+		$.each(opts.fields, function(key, value) {
+			_this.$form.find(key).on('blur', function(e) {
+				var result = _this.validateField($(this), value);
 				if (!result) {
 					opts.error.call(this, e);
+					return;
+				}
+				if (value.remote) {
+					$.ajax({
+						url: value.remote.url,
+						dataType: 'json',
+						data: value.remote.data,
+						success: function(obj) {
+							
+						}
+					});
 				}
 			});
-		}
+		});
 	};
 
 	FormValidate.prototype.validateField = function($field, fieldConf) {
@@ -50,7 +58,8 @@
 
 		if (required && !val.length) {
 			return false;
-		} else if (fieldConf.reg) {
+		} 
+		if (fieldConf.reg) {
 			return fieldConf.reg.test(val);
 		}
 
@@ -68,7 +77,6 @@
 					error = true;
 				}
 			}
-
 			if (error) {
 				opts.error.call(this, e);
 			} else {
@@ -85,7 +93,6 @@
 		    var data  = $this.data('formValidate');
  
 		    if (!data) $this.data('formValidate', new FormValidate(this, options));
-
         });
     };
 });
