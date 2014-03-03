@@ -5,7 +5,7 @@
  */
 
 ;(function(factory) {
-	if (typeof define === 'function' && define.amd) {
+	if (typeof define == 'function' && define.amd) {
 		//AMD support
 		define(['jquery'], factory);
 	} else {
@@ -24,43 +24,67 @@
 	FormValidate.DEFAULTS = {
 		error: $.noop,
 		success: $.noop,
+		requireErrorCallback: $.noop,
+		regErrorCallback: $.noop,
 		errorDom: ''
 	};
 
 	FormValidate.prototype.handleFields = function() {
 		var opts = this.options,
-			_this = this; 
+				_this = this; 
 
 		$.each(opts.fields, function(key, value) {
-			_this.$form.find(key).on('blur', function(e) {
-				var result = _this.validateField($(this), value);
-				if (!result) {
-					opts.error.call(this, e);
-					return;
-				}
-				if (value.remote) {
-					$.ajax({
-						url: value.remote.url,
-						dataType: 'json',
-						data: value.remote.data,
-						success: function(obj) {
-							
-						}
-					});
-				}
-			});
+			_this
+				.$form
+				.find(key)
+				.on('blur', function(e) {
+					var result = _this.validateField($(this), value);
+					if (!result) {
+						opts.error.call(this, e);
+						return;
+					}
+					if (value.remote) {
+						$.ajax({
+							url: value.remote.url,
+							dataType: 'json',
+							data: value.remote.data
+						}).done(function(json) {
+							if (json.error) {
+								alert(json.error.message);
+							}
+						});
+					}
+				});
+
+			if (value.forbidSpace) {
+				_this.$form.find(key).on('keydown', function(e) {
+					var $this = $(this);
+					if (e.which === 32) {
+						// $this.val($.trim($this.val()));
+						e.preventDefault();
+					}
+				});
+			}
+
 		});
 	};
 
 	FormValidate.prototype.validateField = function($field, fieldConf) {
 		var val = $.trim($field.val()),
-			required = !!$field[0].attributes.getNamedItem('required') || fieldConf.required;
+				opts = this.options,
+				required = !!$field[0].attributes.getNamedItem('required') || fieldConf.required;
 
 		if (required && !val.length) {
+			opts.requireErrorCallback.call($field);
 			return false;
-		} 
+		}
+
 		if (fieldConf.reg) {
-			return fieldConf.reg.test(val);
+			var testResult = fieldConf.reg.test(val);
+			if (!testResult) {
+				opts.regErrorCallback.call($field);
+			}
+			return testResult;
 		}
 
 		return true;
@@ -68,8 +92,8 @@
 
 	FormValidate.prototype.handleSubmit = function() {
 		var opts = this.options,
-			error = false,
-			_this = this;
+				error = false,
+				_this = this;
 
 		this.$form.on('submit', function(e) {
 			for (var i in opts.fields) {
@@ -86,7 +110,7 @@
 	};
 
 	$.fn.formValidate = function (option) {
-        var options = $.extend({}, FormValidate.DEFAULTS, typeof option === 'object' && option);
+        var options = $.extend({}, FormValidate.DEFAULTS, typeof option == 'object' && option);
         	
         return this.each(function () {
 		    var $this = $(this);
