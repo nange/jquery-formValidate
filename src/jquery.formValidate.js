@@ -110,13 +110,14 @@
 	};
 
 	$.fn.formValidate = function (option) {
-        var options = $.extend({}, FormValidate.DEFAULTS, typeof option == 'object' && option);
         	
-        return this.each(function () {
-		    var $this = $(this);
-		    var data  = $this.data('formValidate');
- 
-		    if (!data) $this.data('formValidate', new FormValidate(this, options));
-        });
-    };
+    return this.each(function () {
+    	var options = $.extend({}, FormValidate.DEFAULTS, typeof option == 'object' && option);
+	    var $this = $(this);
+	    var data  = $this.data('formValidate');
+
+	    if (!data) $this.data('formValidate', new FormValidate(this, options));
+    });
+  };
+  
 });
